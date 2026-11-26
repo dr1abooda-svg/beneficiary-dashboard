@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="referrer" content="same-origin" />
+    <title>@ViewBag.Title</title>
+    <link rel="stylesheet" href="@Url.Content("~/Content/dashboard.css")" />
+</head>
+<body>
+    <aside class="sidebar" aria-label="التنقل">
+      <div class="side-brand" aria-hidden="true"><span>▦</span></div>
+      <nav>
+        <a href="@Url.Action("Index", "Dashboard")" class="nav-item current" aria-current="page"><span class="nav-icon">▦</span><span>الرئيسية</span></a>
+        <span class="nav-item unavailable" title="لم تنفذ هذه الصفحة بعد"><span class="nav-icon">▥</span><span>التقارير</span></span>
+        <span class="nav-item unavailable" title="لم تنفذ هذه الصفحة بعد"><span class="nav-icon">◕</span><span>التحليلات</span></span>
+        <span class="nav-item unavailable" title="لم تنفذ هذه الصفحة بعد"><span class="nav-icon">▤</span><span>المشاركات</span></span>
+      </nav>
+    </aside>
+    <div class="shell">@RenderBody()</div>
+    <script src="@Url.Content("~/Scripts/dashboard.js")" defer></script>
+</body>
+</html>

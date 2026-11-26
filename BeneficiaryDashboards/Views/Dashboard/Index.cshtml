@@ -1,0 +1,79 @@
+@{
+    ViewBag.Title = "لوحة المتابعة اللحظية لمشاركات المستفيدين";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+<main id="board-app" class="board" data-options-url="@Url.Action("Options", "Dashboard")" data-snapshot-url="@Url.Action("Snapshot", "Dashboard")">
+  <header class="topbar">
+    <div class="page-title">
+      <h1>لوحة المتابعة اللحظية لمشاركات المستفيدين</h1>
+      <p id="subtitle-month" class="subtitle">—</p>
+    </div>
+    <div class="freshness" role="status" aria-live="polite">
+      <div id="retrieved-at">وقت الاستعلام: —</div>
+      <div class="freshness-line"><span id="state-dot" class="live-dot"></span><span id="refresh-state">جاري الاتصال بقاعدة البيانات</span></div>
+    </div>
+  </header>
+
+  <form id="filter-form" class="filters" aria-label="عوامل التصفية">
+    <div class="field"><label for="filter-month">الفترة الزمنية</label><input id="filter-month" name="month" type="month" required /></div>
+    <div class="field"><label for="filter-channel">القناة</label><select id="filter-channel" name="channelId"><option value="">جميع القنوات</option></select></div>
+    <div class="field"><label for="filter-region">المنطقة</label><select id="filter-region" name="regionId"><option value="">جميع المناطق</option></select></div>
+    <div class="field"><label for="filter-service">الخدمة</label><select id="filter-service" name="serviceId"><option value="">جميع الخدمات</option></select></div>
+    <div class="filter-actions">
+      <button type="submit" class="primary-btn">تطبيق</button>
+      <button id="reset-filters" type="button" class="subtle-btn">إعادة ضبط</button>
+    </div>
+  </form>
+
+  <div id="alert" class="alert" role="alert" hidden></div>
+
+  <section class="kpis" aria-label="مؤشرات الأداء الرئيسية">
+    <article class="kpi"><div class="kpi-top"><span class="kpi-icon">◉</span>إجمالي المشاركات</div><strong id="metric-total">—</strong></article>
+    <div id="channel-kpis" class="dynamic-kpis" aria-label="المشاركات حسب القنوات"></div>
+    <article class="kpi"><div class="kpi-top"><span class="kpi-icon">✓</span>نسبة الإغلاق</div><strong id="metric-closure">—</strong><small>بناءً على تاريخ الإغلاق المسجل</small></article>
+    <article class="kpi"><div class="kpi-top"><span class="kpi-icon">◷</span>الالتزام بـ SLA</div><strong id="metric-sla">—</strong><small>المغلقة ذات موعد استحقاق صالح</small></article>
+    <article class="kpi"><div class="kpi-top"><span class="kpi-icon">★</span>متوسط التقييم</div><strong id="metric-rating">—</strong><small id="rating-count">التقييمات المتاحة</small></article>
+  </section>
+
+  <div class="main-grid">
+    <section class="panel channels-panel" aria-labelledby="channels-title">
+      <div class="panel-heading"><h2 id="channels-title">توزيع المشاركات حسب القناة</h2><span class="panel-glyph">◕</span></div>
+      <div class="donut-layout">
+        <div class="donut-container"><svg id="channel-donut" viewBox="0 0 340 340" aria-label="توزيع القنوات" role="img"></svg></div>
+        <div id="channel-legend" class="legend-list"></div>
+      </div>
+      <div class="caption-bar">تعرض القنوات كما هي مسجلة في <bdi>Ticket_Channel.Name</bdi>.</div>
+    </section>
+
+    <section class="panel daily-panel" aria-labelledby="daily-title">
+      <div class="panel-heading"><h2 id="daily-title">الاتجاه اليومي للمشاركات</h2><span class="panel-glyph">▥</span></div>
+      <div class="daily-stats">
+        <div><span>أدنى يوم</span><strong id="lowest-day">—</strong><small id="lowest-date"></small></div>
+        <div><span>أعلى يوم</span><strong id="highest-day">—</strong><small id="highest-date"></small></div>
+        <div><span>متوسط يومي</span><strong id="daily-average">—</strong><small>على أيام الشهر كاملة</small></div>
+      </div>
+      <div class="chart-wrap"><svg id="daily-chart" viewBox="0 0 920 332" role="img" aria-label="عدد المشاركات اليومية"></svg></div>
+    </section>
+
+    <section class="panel status-panel" aria-labelledby="status-title">
+      <div class="panel-heading"><h2 id="status-title">حالة المشاركات</h2><span class="panel-glyph">◔</span></div>
+      <div id="status-rows" class="status-rows"></div>
+      <p class="panel-note">تُعرض المسميات الواردة في <bdi>Ticket_Status.Name</bdi> دون افتراض معاني رموز الحالات.</p>
+    </section>
+
+    <section class="panel latest-panel" aria-labelledby="latest-title">
+      <div class="panel-heading"><h2 id="latest-title">آخر المشاركات الواردة</h2><span class="panel-glyph">≡</span></div>
+      <div class="table-scroller">
+        <table>
+          <thead><tr><th scope="col">الوقت</th><th scope="col">رقم المشاركة</th><th scope="col">القناة</th><th scope="col">النوع</th><th scope="col">المنطقة</th><th scope="col">الحالة</th></tr></thead>
+          <tbody id="latest-body"><tr><td colspan="6" class="empty-row">جاري تحميل البيانات...</td></tr></tbody>
+        </table>
+      </div>
+    </section>
+  </div>
+  <footer class="board-footer">
+    <span>المصدر: <bdi>dbo.Ticket</bdi> وجداول القنوات والحالات والأنواع والمناطق المرتبطة بها.</span>
+    <span id="source-latest">أحدث مشاركة مسجلة: —</span>
+    <button id="manual-refresh" class="text-btn" type="button">تحديث البيانات الآن</button>
+  </footer>
+</main>

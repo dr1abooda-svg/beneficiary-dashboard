@@ -1,0 +1,38 @@
+name: Build and verify
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  windows:
+    runs-on: windows-2022
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          persist-credentials: false
+      - name: Verify SQL contracts and JavaScript syntax
+        shell: pwsh
+        run: |
+          python Verification/verify_schema.py
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          node --check BeneficiaryDashboards/Scripts/dashboard.js
+      - name: Restore NuGet packages
+        shell: pwsh
+        run: nuget restore BeneficiaryDashboards.sln -NonInteractive -Source https://api.nuget.org/v3/index.json
+      - name: Build Debug and Release
+        shell: pwsh
+        run: |
+          $vswhere = Join-Path ${env:ProgramFiles(x86)} 'Microsoft Visual Studio\Installer\vswhere.exe'
+          $msbuild = & $vswhere -latest -requires Microsoft.Component.MSBuild -find 'MSBuild\Current\Bin\MSBuild.exe'
+          if (-not $msbuild) { throw 'MSBuild was not found.' }
+          & $msbuild BeneficiaryDashboards.sln /m /p:Configuration=Debug /verbosity:minimal
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          & $msbuild BeneficiaryDashboards.sln /m /p:Configuration=Release /verbosity:minimal
